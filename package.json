@@ -1,0 +1,7 @@
+{
+  "author": "itismadness",
+  "dependencies": {
+    "fastify": "^1.13.0",
+    "irc-upd": "^0.10.0"
+  }
+}
