@@ -1,0 +1,7 @@
+{
+  "username": "GithubBot",
+  "nickserv": "some_long_string",
+  "channels": [
+      "#develop"
+  ]
+}
