@@ -4,36 +4,37 @@ const irc = require('irc-upd');
 const settings = require('./settings');
 
 const client = new irc.Client('irc.orpheus.network', settings.username, {
-  channels: settings.channels
+  channels: []
 });
 
 client.addListener('registered', () => {
   if (settings.nickserv) {
     client.say('nickserv', `IDENTIFY ${settings.nickserv}`);
+    client.join(settings.channels.join(','));
   }
 });
 
 let messages = []
-function issues(body) {
+function handle_issue(body) {
   // Format:
   // Gazelle - itismadness opened issue #59 - Test Issue... | https://github.com/OPSnet/Gazelle/issues/59
-  let message = `${body.repository.name} - ${body.sender.name} ${body.action} issue #${body.issue.number}`;
+  let message = `${body.repository.name} - ${body.sender.login} ${body.action} issue #${body.issue.number}`;
   message += ` - ${body.issue.title} | ${body.issue.html_url}`;
   
   // TODO: handle comments
 
-  message.push(message);
+  messages.push(message);
 }
 
-function commit(body) {
+function handle_commits(body) {
   let ref = body.ref.split('/');
   let branch = ref[ref.length-1];
-  if (branch !== master_branch) {
+  if (branch !== body.repository.master_branch) {
     return;
   }
   for (let commit of body.commits) {
-    let commit = commit.id.substr(0, 7);
-    let message = `${body.repository.name} - ${commit.author.name} just pushed commit ${commit} to ${branch}`;
+    let id = commit.id.substr(0, 7);
+    let message = `${body.repository.name} - ${commit.author.name} just pushed commit ${id} to ${branch}`;
     message += ` - ${commit.message} | ${commit.url}`;
     messages.push(message);
   }
@@ -54,9 +55,9 @@ fastify.post('/', async (req, reply) => {
     handle_issue(body);
   }
   else if (event === 'push') {
-    handle_commit(commit, body);
+    handle_commits(body);
   }
-  for (channel of client.channels) {
+  for (channel of settings.channels) {
     console.log(channel);
   }
   for (let message of messages) {
