@@ -46,9 +46,7 @@ fastify.get('/', async (req, reply) => {
 
 fastify.post('/', async (req, reply) => {
   let body = req.body;
-  console.log(JSON.stringify(body, null, 2));
-  console.log(req.headers);
-  let message = `New Github Event from ${body.sender.login}`;
+  
   let event = req.headers['x-github-event'];
   messages = [];
   if (event === 'issues') {
@@ -57,12 +55,19 @@ fastify.post('/', async (req, reply) => {
   else if (event === 'push') {
     handle_commits(body);
   }
+  else {
+    console.log(JSON.stringify(body, null, 2));
+    console.log(req.headers);
+    let message = `New Github Event ${event} by ${body.sender.login}`;
+    messages.push(message);
+  }
+
   for (channel of settings.channels) {
-    console.log(channel);
+    for (let message of messages) {
+      client.say('#test', message);
+    }
   }
-  for (let message of messages) {
-    client.say('#test', message);
-  }
+  messages = [];
   return { message: 'posted' };
 });
 
