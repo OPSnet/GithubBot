@@ -44,13 +44,14 @@ fastify.get('/', async (req, reply) => {
 });
 
 fastify.post('/', async (req, reply) => {
-  console.log(JSON.stringify(req.body, null, 2));
+  let body = req.body;
+  console.log(JSON.stringify(body, null, 2));
   console.log(req.headers);
   let message = `New Github Event from ${body.sender.login}`;
   let event = req.headers['x-github-event'];
   messages = [];
   if (event === 'issues') {
-    handle_issue(req.body);
+    handle_issue(body);
   }
   else if (event === 'push') {
     handle_commit(commit, body);
