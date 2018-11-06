@@ -13,14 +13,54 @@ client.addListener('registered', () => {
   }
 });
 
+let messages = []
+function issues(body) {
+  // Format:
+  // Gazelle - itismadness opened issue #59 - Test Issue... | https://github.com/OPSnet/Gazelle/issues/59
+  let message = `${body.repository.name} - ${body.sender.name} ${body.action} issue #${body.issue.number}`;
+  message += ` - ${body.issue.title} | ${body.issue.html_url}`;
+  
+  // TODO: handle comments
+
+  message.push(message);
+}
+
+function commit(body) {
+  let ref = body.ref.split('/');
+  let branch = ref[ref.length-1];
+  if (branch !== master_branch) {
+    return;
+  }
+  for (let commit of body.commits) {
+    let commit = commit.id.substr(0, 7);
+    let message = `${body.repository.name} - ${commit.author.name} just pushed commit ${commit} to ${branch}`;
+    message += ` - ${commit.message} | ${commit.url}`;
+    messages.push(message);
+  }
+}
+
 fastify.get('/', async (req, reply) => {
   return { hello: 'world' }
 });
 
 fastify.post('/', async (req, reply) => {
-  console.log(req.body['test']);
+  console.log(JSON.stringify(req.body, null, 2));
   console.log(req.headers);
-  client.say('#develop', `New Github Event from ${sender.login}`);
+  let message = `New Github Event from ${body.sender.login}`;
+  let event = req.headers['x-github-event'];
+  messages = [];
+  if (event === 'issues') {
+    handle_issue(req.body);
+  }
+  else if (event === 'push') {
+    handle_commit(commit, body);
+  }
+  for (channel of client.channels) {
+    console.log(channel);
+  }
+  for (let message of messages) {
+    client.say('#test', message);
+  }
   return { message: 'posted' };
 });
 
