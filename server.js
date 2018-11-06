@@ -64,7 +64,7 @@ fastify.post('/', async (req, reply) => {
 
   for (channel of settings.channels) {
     for (let message of messages) {
-      client.say('#test', message);
+      client.say(channel, message);
     }
   }
   messages = [];
